@@ -14,7 +14,7 @@ async function gerarHash(string) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Função que o index.html vai chamar para validar o login
+// Função que o index.html vai chamar para validar o login localmente
 export async function validarCredenciais(usuarioDigitado, senhaDigitada) {
     const hashUser = await gerarHash(usuarioDigitado.trim().toLowerCase());
     const hashPass = await gerarHash(senhaDigitada);
