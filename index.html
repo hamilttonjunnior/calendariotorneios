@@ -329,12 +329,12 @@
                     <input type="text" id="localTorneio" required>
                 </div>
                 <div class="form-group">
-                    <label>Cartaz/Banner (Imagem)</label>
-                    <input type="file" id="imagemTorneio" accept="image/*">
+                    <label>Link Direto do Cartaz/Imagem</label>
+                    <input type="url" id="imagemTorneio" placeholder="https://exemplo.com/imagem.jpg" required>
                 </div>
                 <div class="form-group">
-                    <label>Informativo/Regulamento (PDF opcional)</label>
-                    <input type="file" id="pdfTorneio" accept=".pdf">
+                    <label>Link Direto do Informativo (PDF opcional)</label>
+                    <input type="url" id="pdfTorneio" placeholder="https://exemplo.com/documento.pdf">
                 </div>
                 <button type="submit" class="btn-submit">Publicar no Calendário</button>
             </form>
@@ -344,7 +344,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDwtgI2CPCRCqEJiongyrU7AA3lVLENMUw",
@@ -358,15 +357,12 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         let usuarioLogado = false;
 
-        // NOVO LOGIN SOLICITADO
         const USUARIO_CORRETO = "Carlos Martins";
         const SENHA_CORRETA = "academicos2027";
 
-        // Lista local guardada em memória caso o Firebase falhe as permissões
         let dadosLocais = [
             { id: "mock_1", nome: "Torneio de Abertura FC Académicos", data: "2026-09-15", local: "Pavilhão Municipal", urlBanner: "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
             { id: "mock_2", nome: "Campeonato Regional Master", data: "2026-10-22", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
@@ -384,7 +380,7 @@
                 card.innerHTML = `
                     <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${t.id}">Apagar</button>
                     <div class="poster-wrapper">
-                        <img src="${t.urlBanner}" alt="Cartaz do Torneio">
+                        <img src="${t.urlBanner}" alt="Cartaz do Torneio" onerror="this.src='https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop'">
                     </div>
                     <div class="info-torneio">
                         <h3>${t.nome}</h3>
@@ -396,23 +392,16 @@
                 grid.appendChild(card);
             });
 
-            // Configuração dos botões de apagar para funcionar localmente ou via Firebase
             document.querySelectorAll('.btn-delete').forEach(btn => {
                 btn.onclick = async (e) => {
                     if(confirm("Tem certeza que deseja apagar este torneio?")) {
                         const idDoc = e.target.getAttribute('data-id');
-                        
-                        // Remove da nossa lista local protetora
                         dadosLocais = dadosLocais.filter(item => item.id !== idDoc);
-                        
-                        // Tenta remover no Firebase de forma silenciosa
                         try {
                             await deleteDoc(doc(db, "torneios", idDoc));
                         } catch(err) {
-                            console.log("Removido localmente no ecrã (Firebase protegido por regras).");
+                            console.log("Removido localmente no ecrã.");
                         }
-                        
-                        // Atualiza a tela imediatamente
                         exibirLista(dadosLocais);
                     }
                 };
@@ -423,20 +412,16 @@
             try {
                 const q = query(collection(db, "torneios"));
                 const querySnapshot = await getDocs(q);
-                
                 let listaFirebase = [];
                 querySnapshot.forEach((docSnap) => {
                     listaFirebase.push({ id: docSnap.id, ...docSnap.data() });
                 });
-
                 if(listaFirebase.length > 0) {
                     dadosLocais = listaFirebase;
                 }
-                
                 dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
                 exibirLista(dadosLocais);
             } catch (error) {
-                console.warn("Restrições no Firebase detetadas. A usar renderização local estável.");
                 dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
                 exibirLista(dadosLocais);
             }
@@ -445,7 +430,6 @@
         function atualizarPainelAdmin() {
             const secaoAdmin = document.getElementById('secaoAdmin');
             const btnGatilho = document.getElementById('btnGatilhoAdmin');
-            
             if (usuarioLogado) {
                 secaoAdmin.style.display = 'block';
                 btnGatilho.innerText = "Sair (Logout)";
@@ -484,7 +468,6 @@
             }
         });
 
-        // Inicialização
         renderizarTorneios();
 
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
@@ -496,43 +479,20 @@
             const nome = document.getElementById('nomeTorneio').value;
             const data = document.getElementById('dataTorneio').value;
             const local = document.getElementById('localTorneio').value;
-            const fileImagem = document.getElementById('imagemTorneio').files[0];
-            const filePdf = document.getElementById('pdfTorneio').files[0];
+            const urlBanner = document.getElementById('imagemTorneio').value.trim();
+            const urlPdf = document.getElementById('pdfTorneio').value.trim();
 
-            let urlBanner = "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop";
-            let urlPdf = "";
-
-            // Tenta fazer upload para o Firebase se permitido
             try {
-                if(fileImagem) {
-                    const storageRefImg = ref(storage, `banners/${Date.now()}_${fileImagem.name}`);
-                    const snapshotImg = await uploadBytes(storageRefImg, fileImagem);
-                    urlBanner = await getDownloadURL(snapshotImg.ref);
-                }
-                if (filePdf) {
-                    const storageRefPdf = ref(storage, `documentos/${Date.now()}_${filePdf.name}`);
-                    const snapshotPdf = await uploadBytes(storageRefPdf, filePdf);
-                    urlPdf = await getDownloadURL(snapshotPdf.ref);
-                }
                 await addDoc(collection(db, "torneios"), { nome, data, local, urlBanner, urlPdf });
             } catch (error) {
-                console.log("Guardando localmente para teste visual instantâneo.");
+                console.log("Guardando localmente devido a restrições no banco de dados.");
             }
 
-            // Garante a inserção imediata na lista local para poderes ver e apagar na hora!
-            const novoItem = {
-                id: "local_" + Date.now(),
-                nome,
-                data,
-                local,
-                urlBanner,
-                urlPdf
-            };
-            
+            const novoItem = { id: "local_" + Date.now(), nome, data, local, urlBanner, urlPdf };
             dadosLocais.push(novoItem);
             dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
             
-            alert("Torneio publicado com sucesso no ecrã!");
+            alert("Torneio adicionado com sucesso!");
             document.getElementById('formTorneio').reset();
             exibirLista(dadosLocais);
             
