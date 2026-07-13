@@ -345,9 +345,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
-        
-        // Importa a validação interna e segura do auth.js
-        import { validarCredenciais } from "./auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDwtgI2CPCRCqEJiongyrU7AA3lVLENMUw",
@@ -363,8 +360,18 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // Estado do login (salvo apenas em memória nesta sessão)
         let usuarioLogado = false;
+
+        // Hashes SHA-256 diretos no código para segurança local sem arquivo externo
+        const USER_HASH = "8ba788939bd6575de2db7e5e347fb7fa75979c78759fb1c5bf0f49646b53cc97"; // carlosmartins@academicos.pt
+        const PASS_HASH = "85b244018260b00dfbf6c7a33cf50676fae85295f7ba1420716616e256f3458c"; // academicos2027
+
+        async function gerarHash(string) {
+            const msgBuffer = new TextEncoder().encode(string);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         async function renderizarTorneios() {
             const grid = document.getElementById('gridTorneios');
@@ -431,7 +438,6 @@
             renderizarTorneios();
         }
 
-        // Funções associadas ao escopo global (window)
         window.abrirOuSairAdmin = function() {
             if (usuarioLogado) {
                 usuarioLogado = false;
@@ -445,15 +451,16 @@
             document.getElementById('modalLogin').style.display = 'none';
         }
 
-        // Validação interna pelo ficheiro auth.js externo
+        // Validação interna direta sem depender de arquivo externo
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const usuarioDigitado = document.getElementById('loginEmail').value;
             const senhaDigitada = document.getElementById('loginSenha').value;
 
-            const loginValido = await validarCredenciais(usuarioDigitado, senhaDigitada);
+            const hashUser = await gerarHash(usuarioDigitado.trim().toLowerCase());
+            const hashPass = await gerarHash(senhaDigitada);
 
-            if (loginValido) {
+            if (hashUser === USER_HASH && hashPass === PASS_HASH) {
                 usuarioLogado = true;
                 window.fecharModal();
                 document.getElementById('formLogin').reset();
@@ -463,7 +470,6 @@
             }
         });
 
-        // Inicializar aplicação carregando a grelha
         renderizarTorneios();
 
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
@@ -504,7 +510,7 @@
 
             } catch (error) {
                 console.error("Erro ao publicar: ", error);
-                alert("Erro ao salvar dados no Firestore. Verifique as regras de gravação.");
+                alert("Erro ao salvar. Verifique se as regras do Firestore/Storage estão públicas.");
             } finally {
                 btnSubmit.innerText = "Publicar no Calendário";
                 btnSubmit.disabled = false;
