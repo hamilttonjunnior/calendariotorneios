@@ -343,7 +343,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -371,7 +371,8 @@
             grid.innerHTML = '';
 
             try {
-                const q = query(collection(db, "torneios"), orderBy("data", "asc"));
+                // CORREÇÃO AQUI: Removemos o orderBy do Firebase para eliminar a necessidade de criar índices manuais
+                const q = query(collection(db, "torneios"));
                 const querySnapshot = await getDocs(q);
                 
                 if(querySnapshot.empty) {
@@ -379,15 +380,26 @@
                     return;
                 }
 
+                // Guardamos os dados num array local para fazer a ordenação por código
+                let listaTorneios = [];
                 querySnapshot.forEach((docSnap) => {
-                    const t = docSnap.data();
-                    const id = docSnap.id;
+                    listaTorneios.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+                });
+
+                // Ordenamos os torneios localmente por data de forma simples
+                listaTorneios.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+                // Renderizamos na tela
+                listaTorneios.forEach((t) => {
                     const dataFormatada = new Date(t.data).toLocaleDateString('pt-PT');
 
                     const card = document.createElement('div');
                     card.className = 'card-torneio';
                     card.innerHTML = `
-                        <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${id}">Apagar</button>
+                        <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${t.id}">Apagar</button>
                         <div class="poster-wrapper">
                             <img src="${t.urlBanner}" alt="Cartaz do Torneio">
                         </div>
