@@ -6,12 +6,12 @@
     <title>Calendário de Torneios - FC Académicos</title>
     <style>
         :root {
-            --bg-principal: #121212;
-            --bg-card: #1e1e1e;
-            --texto-claro: #ffffff;
-            --texto-mutado: #aaaaaa;
-            --accent: #ffffff;
-            --borda: #333333;
+            --bg-principal: #ffffff; /* Fundo Branco */
+            --bg-card: #f9f9f9;      /* Card Cinza Claro */
+            --texto-claro: #000000;  /* Texto Preto */
+            --texto-mutado: #555555; /* Texto Cinza Escuro */
+            --accent: #000000;       /* Detalhes em Preto */
+            --borda: #cccccc;        /* Bordas Suaves */
         }
 
         * {
@@ -31,10 +31,10 @@
 
         /* Header */
         header {
-            background-color: #0a0a0a;
+            background-color: #ffffff;
             padding: 20px;
             text-align: center;
-            border-bottom: 2px solid var(--borda);
+            border-bottom: 2px solid var(--texto-claro);
         }
 
         header img {
@@ -47,6 +47,7 @@
             font-size: 1.8rem;
             text-transform: uppercase;
             letter-spacing: 2px;
+            color: var(--texto-claro);
         }
 
         header p {
@@ -82,14 +83,16 @@
 
         .card-torneio:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            border-color: var(--texto-claro);
         }
 
         .poster-wrapper {
             width: 100%;
-            padding-top: 135%; /* Proporção de cartaz de cinema (3:4 aprox) */
+            padding-top: 135%; 
             position: relative;
-            background-color: #0a0a0a;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid var(--borda);
         }
 
         .poster-wrapper img {
@@ -112,6 +115,7 @@
             font-size: 1.2rem;
             margin-bottom: 10px;
             line-height: 1.4;
+            color: var(--texto-claro);
         }
 
         .detalhe {
@@ -127,42 +131,44 @@
             margin-top: auto;
             background-color: transparent;
             color: var(--texto-claro);
-            border: 1px solid var(--texto-claro);
+            border: 2px solid var(--texto-claro);
             padding: 10px;
             text-align: center;
             text-decoration: none;
             border-radius: 4px;
             font-weight: bold;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
             cursor: pointer;
         }
 
         .btn-download:hover {
             background-color: var(--texto-claro);
-            color: var(--bg-principal);
+            color: #ffffff;
         }
 
         .btn-delete {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: rgba(255, 0, 0, 0.8);
+            background-color: rgba(218, 0, 0, 0.9);
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
-            display: none; /* Só aparece quando logado */
+            font-weight: bold;
+            display: none;
+            z-index: 10;
         }
 
-        /* Seção Administrativa Oculta */
+        /* Seção Administrativa */
         .admin-section {
-            background-color: #0a0a0a;
-            border-top: 2px solid var(--borda);
+            background-color: #f1f1f1;
+            border-top: 2px solid var(--texto-claro);
             padding: 40px 20px;
-            display: none; /* Controlado via JS */
+            display: none;
         }
 
         .admin-container {
@@ -174,6 +180,7 @@
             margin-bottom: 20px;
             text-align: center;
             text-transform: uppercase;
+            color: var(--texto-claro);
         }
 
         .form-group {
@@ -185,33 +192,44 @@
             margin-bottom: 5px;
             font-size: 0.9rem;
             color: var(--texto-mutado);
+            font-weight: 600;
         }
 
         .form-group input {
             width: 100%;
             padding: 10px;
-            background-color: var(--bg-card);
+            background-color: #ffffff;
             border: 1px solid var(--borda);
-            color: white;
+            color: black;
             border-radius: 4px;
+        }
+
+        .form-group input:focus {
+            border-color: var(--texto-claro);
+            outline: none;
         }
 
         .btn-submit {
             width: 100%;
             padding: 12px;
-            background-color: white;
-            color: black;
+            background-color: var(--texto-claro);
+            color: #ffffff;
             border: none;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
             font-size: 1rem;
             margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
         }
 
         /* Footer */
         footer {
-            background-color: #0a0a0a;
+            background-color: #ffffff;
             padding: 20px;
             text-align: center;
             font-size: 0.8rem;
@@ -222,10 +240,11 @@
         footer button {
             background: none;
             border: none;
-            color: var(--texto-mutado);
+            color: var(--texto-claro);
             cursor: pointer;
             text-decoration: underline;
             margin-left: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -238,21 +257,20 @@
         <p>Época 2026/2027</p>
     </header>
 
-    <!-- Grelha de Cartazes Pública -->
+    <!-- Grelha de Cartazes -->
     <div class="container">
         <div class="grid-torneios" id="gridTorneios">
-            <!-- Os cartazes vão entrar aqui dinamicamente via JS -->
             <p style="text-align: center; grid-column: 1/-1; color: var(--texto-mutado);">A carregar campeonatos...</p>
         </div>
     </div>
 
-    <!-- Rodapé com gatilho de login -->
+    <!-- Rodapé -->
     <footer>
         &copy; 2026 FC Académicos. Todos os direitos reservados.
         <button id="btnGatilhoAdmin" onclick="gerirLoginAdmin()">Acesso Direção</button>
     </footer>
 
-    <!-- Área de Manutenção (Aparece após o Login) -->
+    <!-- Área de Manutenção -->
     <section class="admin-section" id="secaoAdmin">
         <div class="admin-container">
             <h2>Nova Manutenção de Torneio</h2>
@@ -282,14 +300,13 @@
         </div>
     </section>
 
-    <!-- SCRIPTS DO FIREBASE (V9 Modular via CDN) -->
+    <!-- SCRIPTS DO FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-        // As tuas credenciais do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDwtgI2CPCRCqEJiongyrU7AA3lVLENMUw",
             authDomain: "calendariotorneios-4dd2c.firebaseapp.com",
@@ -300,7 +317,6 @@
             measurementId: "G-GPLW8354GC"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const storage = getStorage(app);
@@ -308,7 +324,6 @@
 
         let usuarioLogado = false;
 
-        // --- CARREGAR TORNEIOS NA TELA ---
         async function renderizarTorneios() {
             const grid = document.getElementById('gridTorneios');
             grid.innerHTML = '';
@@ -325,8 +340,6 @@
                 querySnapshot.forEach((docSnap) => {
                     const t = docSnap.data();
                     const id = docSnap.id;
-
-                    // Formatar data para padrão PT
                     const dataFormatada = new Date(t.data).toLocaleDateString('pt-PT');
 
                     const card = document.createElement('div');
@@ -340,13 +353,12 @@
                             <h3>${t.nome}</h3>
                             <div class="detalhe">📅 ${dataFormatada}</div>
                             <div class="detalhe">📍 ${t.local}</div>
-                            ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.5;">Sem PDF</button>'}
+                            ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.3; border-color:#aaa; color:#aaa;">Sem PDF</button>'}
                         </div>
                     `;
                     grid.appendChild(card);
                 });
 
-                // Adicionar evento aos botões de apagar
                 document.querySelectorAll('.btn-delete').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         if(confirm("Tem certeza que deseja apagar este torneio?")) {
@@ -363,7 +375,6 @@
             }
         }
 
-        // --- SISTEMA DE LOGIN DO DIRETOR ---
         window.gerirLoginAdmin = function() {
             if (auth.currentUser) {
                 signOut(auth);
@@ -372,12 +383,14 @@
                 const senha = prompt("Senha de Acesso:");
                 if (email && senha) {
                     signInWithEmailAndPassword(auth, email, senha)
-                        .catch(err => alert("Acesso negado: Dados incorretos."));
+                        .catch(err => {
+                            console.error(err);
+                            alert("Acesso negado: Dados incorretos ou erro de digitação.");
+                        });
                 }
             }
         }
 
-        // Monitorizar estado do Login
         onAuthStateChanged(auth, (user) => {
             const secaoAdmin = document.getElementById('secaoAdmin');
             const btnGatilho = document.getElementById('btnGatilhoAdmin');
@@ -394,7 +407,6 @@
             renderizarTorneios();
         });
 
-        // --- SUBMETER FORMULÁRIO (UPLOAD & GRAVAÇÃO) ---
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = e.target.querySelector('.btn-submit');
@@ -408,12 +420,10 @@
             const filePdf = document.getElementById('pdfTorneio').files[0];
 
             try {
-                // 1. Upload do Banner
                 const storageRefImg = ref(storage, `banners/${Date.now()}_${fileImagem.name}`);
                 const snapshotImg = await uploadBytes(storageRefImg, fileImagem);
                 const urlBanner = await getDownloadURL(snapshotImg.ref);
 
-                // 2. Upload do PDF (Se houver)
                 let urlPdf = "";
                 if (filePdf) {
                     const storageRefPdf = ref(storage, `documentos/${Date.now()}_${filePdf.name}`);
@@ -421,7 +431,6 @@
                     urlPdf = await getDownloadURL(snapshotPdf.ref);
                 }
 
-                // 3. Salvar no Firestore
                 await addDoc(collection(db, "torneios"), {
                     nome,
                     data,
@@ -436,7 +445,7 @@
 
             } catch (error) {
                 console.error("Erro ao publicar: ", error);
-                alert("Erro ao salvar o torneio. Verifique as permissões de armazenamento.");
+                alert("Erro ao salvar. Garanta que o login foi feito e as regras do Firebase estão publicadas.");
             } finally {
                 btnSubmit.innerText = "Publicar no Calendário";
                 btnSubmit.disabled = false;
