@@ -163,6 +163,46 @@
             z-index: 10;
         }
 
+        /* Modal de Login Moderno */
+        .modal-login {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid var(--texto-claro);
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         /* Seção Administrativa */
         .admin-section {
             background-color: #f1f1f1;
@@ -250,27 +290,41 @@
 </head>
 <body>
 
-    <!-- Topo -->
     <header>
         <img src="logo.png" alt="FC Académicos Logo">
         <h1>Calendário de Torneios</h1>
         <p>Época 2026/2027</p>
     </header>
 
-    <!-- Grelha de Cartazes -->
     <div class="container">
         <div class="grid-torneios" id="gridTorneios">
             <p style="text-align: center; grid-column: 1/-1; color: var(--texto-mutado);">A carregar campeonatos...</p>
         </div>
     </div>
 
-    <!-- Rodapé -->
+    <div class="modal-login" id="modalLogin">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h3>Acesso Direção</h3>
+            <form id="formLogin">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="loginEmail" placeholder="exemplo@academicos.pt" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="loginSenha" placeholder="******" required>
+                </div>
+                <button type="submit" class="btn-submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
     <footer>
         &copy; 2026 FC Académicos. Todos os direitos reservados.
-        <button id="btnGatilhoAdmin" onclick="gerirLoginAdmin()">Acesso Direção</button>
+        <button id="btnGatilhoAdmin" onclick="abrirOuSairAdmin()">Acesso Direção</button>
     </footer>
 
-    <!-- Área de Manutenção -->
     <section class="admin-section" id="secaoAdmin">
         <div class="admin-container">
             <h2>Nova Manutenção de Torneio</h2>
@@ -300,7 +354,6 @@
         </div>
     </section>
 
-    <!-- SCRIPTS DO FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -375,21 +428,35 @@
             }
         }
 
-        window.gerirLoginAdmin = function() {
+        // Funções da Interface Modal
+        window.abrirOuSairAdmin = function() {
             if (auth.currentUser) {
                 signOut(auth);
             } else {
-                const email = prompt("E-mail do Diretor:");
-                const senha = prompt("Senha de Acesso:");
-                if (email && senha) {
-                    signInWithEmailAndPassword(auth, email, senha)
-                        .catch(err => {
-                            console.error(err);
-                            alert("Acesso negado: Dados incorretos ou erro de digitação.");
-                        });
-                }
+                document.getElementById('modalLogin').style.display = 'flex';
             }
         }
+
+        window.fecharModal = function() {
+            document.getElementById('modalLogin').style.display = 'none';
+        }
+
+        // Submeter formulário interno de Login
+        document.getElementById('formLogin').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            signInWithEmailAndPassword(auth, email, senha)
+                .then(() => {
+                    fecharModal();
+                    document.getElementById('formLogin').reset();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Acesso negado: E-mail ou senha incorretos.");
+                });
+        });
 
         onAuthStateChanged(auth, (user) => {
             const secaoAdmin = document.getElementById('secaoAdmin');
