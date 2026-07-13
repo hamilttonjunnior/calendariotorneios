@@ -296,7 +296,7 @@
             <form id="formLogin">
                 <div class="form-group">
                     <label>E-mail / Utilizador</label>
-                    <input type="text" id="loginEmail" placeholder="Nome do Diretor" required>
+                    <input type="text" id="loginEmail" placeholder="carlosmartins@academicos.pt" required>
                 </div>
                 <div class="form-group">
                     <label>Senha</label>
@@ -346,7 +346,7 @@
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
         
-        // Importa a validação do arquivo externo auth.js
+        // Importa a validação interna e segura do auth.js
         import { validarCredenciais } from "./auth.js";
 
         const firebaseConfig = {
@@ -363,6 +363,7 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
+        // Estado do login (salvo apenas em memória nesta sessão)
         let usuarioLogado = false;
 
         async function renderizarTorneios() {
@@ -430,7 +431,7 @@
             renderizarTorneios();
         }
 
-        // Tornar as funções de controlo visíveis globalmente na janela (window)
+        // Funções associadas ao escopo global (window)
         window.abrirOuSairAdmin = function() {
             if (usuarioLogado) {
                 usuarioLogado = false;
@@ -444,7 +445,7 @@
             document.getElementById('modalLogin').style.display = 'none';
         }
 
-        // Validação chamando a lógica externa do auth.js
+        // Validação interna pelo ficheiro auth.js externo
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const usuarioDigitado = document.getElementById('loginEmail').value;
@@ -462,7 +463,7 @@
             }
         });
 
-        // Inicializa a grelha
+        // Inicializar aplicação carregando a grelha
         renderizarTorneios();
 
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
@@ -503,7 +504,7 @@
 
             } catch (error) {
                 console.error("Erro ao publicar: ", error);
-                alert("Erro ao salvar. Certifique-se de que libertou as regras no Firebase para gravação.");
+                alert("Erro ao salvar dados no Firestore. Verifique as regras de gravação.");
             } finally {
                 btnSubmit.innerText = "Publicar no Calendário";
                 btnSubmit.disabled = false;
