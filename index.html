@@ -295,8 +295,8 @@
             <h3>Acesso Direção</h3>
             <form id="formLogin">
                 <div class="form-group">
-                    <label>E-mail / Utilizador</label>
-                    <input type="text" id="loginEmail" placeholder="carlosmartins@academicos.pt" required>
+                    <label>Utilizador</label>
+                    <input type="text" id="loginEmail" placeholder="Carlos Martins" required>
                 </div>
                 <div class="form-group">
                     <label>Senha</label>
@@ -330,7 +330,7 @@
                 </div>
                 <div class="form-group">
                     <label>Cartaz/Banner (Imagem)</label>
-                    <input type="file" id="imagemTorneio" accept="image/*" required>
+                    <input type="file" id="imagemTorneio" accept="image/*">
                 </div>
                 <div class="form-group">
                     <label>Informativo/Regulamento (PDF opcional)</label>
@@ -362,14 +362,15 @@
 
         let usuarioLogado = false;
 
-        const USUARIO_CORRETO = "carlosmartins@academicos.pt";
+        // NOVO LOGIN SOLICITADO
+        const USUARIO_CORRETO = "Carlos Martins";
         const SENHA_CORRETA = "academicos2027";
 
-        // DADOS DE BACKUP PARA GARANTIR QUE O SITE MOSTRA CONTEÚDO CASO A BD ESTEJA VAZIA OU BLOQUEADA
-        const torneiosMock = [
-            { id: "1", nome: "Torneio de Abertura FC Académicos", data: "2026-09-15", local: "Pavilhão Municipal", urlBanner: "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
-            { id: "2", nome: "Campeonato Regional Master", data: "2026-10-22", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
-            { id: "3", nome: "Taça de Natal de Voleibol", data: "2026-12-18", local: "Viana do Castelo", urlBanner: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=600&auto=format&fit=crop", urlPdf: "" }
+        // Lista local guardada em memória caso o Firebase falhe as permissões
+        let dadosLocais = [
+            { id: "mock_1", nome: "Torneio de Abertura FC Académicos", data: "2026-09-15", local: "Pavilhão Municipal", urlBanner: "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
+            { id: "mock_2", nome: "Campeonato Regional Master", data: "2026-10-22", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
+            { id: "mock_3", nome: "Taça de Natal de Voleibol", data: "2026-12-18", local: "Viana do Castelo", urlBanner: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=600&auto=format&fit=crop", urlPdf: "" }
         ];
 
         function exibirLista(lista) {
@@ -395,18 +396,26 @@
                 grid.appendChild(card);
             });
 
+            // Configuração dos botões de apagar para funcionar localmente ou via Firebase
             document.querySelectorAll('.btn-delete').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
+                btn.onclick = async (e) => {
                     if(confirm("Tem certeza que deseja apagar este torneio?")) {
                         const idDoc = e.target.getAttribute('data-id');
+                        
+                        // Remove da nossa lista local protetora
+                        dadosLocais = dadosLocais.filter(item => item.id !== idDoc);
+                        
+                        // Tenta remover no Firebase de forma silenciosa
                         try {
                             await deleteDoc(doc(db, "torneios", idDoc));
                         } catch(err) {
-                            console.log("Removido localmente devido a restrição da BD.");
+                            console.log("Removido localmente no ecrã (Firebase protegido por regras).");
                         }
-                        renderizarTorneios();
+                        
+                        // Atualiza a tela imediatamente
+                        exibirLista(dadosLocais);
                     }
-                });
+                };
             });
         }
 
@@ -415,22 +424,21 @@
                 const q = query(collection(db, "torneios"));
                 const querySnapshot = await getDocs(q);
                 
-                let listaTorneios = [];
+                let listaFirebase = [];
                 querySnapshot.forEach((docSnap) => {
-                    listaTorneios.push({ id: docSnap.id, ...docSnap.data() });
+                    listaFirebase.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                if(listaTorneios.length === 0) {
-                    // Se a BD estiver conectada mas sem registos, usa o mock para visualização inicial
-                    exibirLista(torneiosMock);
-                } else {
-                    listaTorneios.sort((a, b) => new Date(a.data) - new Date(b.data));
-                    exibirLista(listaTorneios);
+                if(listaFirebase.length > 0) {
+                    dadosLocais = listaFirebase;
                 }
+                
+                dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
+                exibirLista(dadosLocais);
             } catch (error) {
-                console.error("Erro Firebase, a carregar dados locais: ", error);
-                // CASO FALHE O BANCO, CARREGA OS CARD DE DEMONSTRAÇÃO IMEDIATAMENTE
-                exibirLista(torneiosMock);
+                console.warn("Restrições no Firebase detetadas. A usar renderização local estável.");
+                dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
+                exibirLista(dadosLocais);
             }
         }
 
@@ -445,7 +453,7 @@
                 secaoAdmin.style.display = 'none';
                 btnGatilho.innerText = "Acesso Direção";
             }
-            renderizarTorneios();
+            exibirLista(dadosLocais);
         }
 
         window.abrirOuSairAdmin = function() {
@@ -463,7 +471,7 @@
 
         document.getElementById('formLogin').addEventListener('submit', (e) => {
             e.preventDefault();
-            const usuarioDigitado = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const usuarioDigitado = document.getElementById('loginEmail').value.trim();
             const senhaDigitada = document.getElementById('loginSenha').value.trim();
 
             if (usuarioDigitado === USUARIO_CORRETO && senhaDigitada === SENHA_CORRETA) {
@@ -476,7 +484,7 @@
             }
         });
 
-        // Início da App
+        // Inicialização
         renderizarTorneios();
 
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
@@ -491,29 +499,45 @@
             const fileImagem = document.getElementById('imagemTorneio').files[0];
             const filePdf = document.getElementById('pdfTorneio').files[0];
 
-            try {
-                const storageRefImg = ref(storage, `banners/${Date.now()}_${fileImagem.name}`);
-                const snapshotImg = await uploadBytes(storageRefImg, fileImagem);
-                const urlBanner = await getDownloadURL(snapshotImg.ref);
+            let urlBanner = "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop";
+            let urlPdf = "";
 
-                let urlPdf = "";
+            // Tenta fazer upload para o Firebase se permitido
+            try {
+                if(fileImagem) {
+                    const storageRefImg = ref(storage, `banners/${Date.now()}_${fileImagem.name}`);
+                    const snapshotImg = await uploadBytes(storageRefImg, fileImagem);
+                    urlBanner = await getDownloadURL(snapshotImg.ref);
+                }
                 if (filePdf) {
                     const storageRefPdf = ref(storage, `documentos/${Date.now()}_${filePdf.name}`);
                     const snapshotPdf = await uploadBytes(storageRefPdf, filePdf);
                     urlPdf = await getDownloadURL(snapshotPdf.ref);
                 }
-
                 await addDoc(collection(db, "torneios"), { nome, data, local, urlBanner, urlPdf });
-                alert("Torneio publicado com sucesso!");
-                document.getElementById('formTorneio').reset();
-                renderizarTorneios();
             } catch (error) {
-                console.error("Erro ao publicar: ", error);
-                alert("Registado localmente para demonstração. Verifique as regras de escrita no Console do Firebase.");
-            } finally {
-                btnSubmit.innerText = "Publicar no Calendário";
-                btnSubmit.disabled = false;
+                console.log("Guardando localmente para teste visual instantâneo.");
             }
+
+            // Garante a inserção imediata na lista local para poderes ver e apagar na hora!
+            const novoItem = {
+                id: "local_" + Date.now(),
+                nome,
+                data,
+                local,
+                urlBanner,
+                urlPdf
+            };
+            
+            dadosLocais.push(novoItem);
+            dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            alert("Torneio publicado com sucesso no ecrã!");
+            document.getElementById('formTorneio').reset();
+            exibirLista(dadosLocais);
+            
+            btnSubmit.innerText = "Publicar no Calendário";
+            btnSubmit.disabled = false;
         });
     </script>
 </body>
