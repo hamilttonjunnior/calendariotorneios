@@ -76,14 +76,13 @@
             letter-spacing: 1px;
         }
 
-        /* GRELHA ADAPTATIVA: Organização por colunas fluídas e caixas compactas */
+        /* Grelha adaptativa (máx 4 colunas) */
         .grid-torneios {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             gap: 25px;
         }
 
-        /* Restringe a grelha a no máximo 4 colunas em computadores e ecrãs grandes */
         @media (min-width: 992px) {
             .grid-torneios {
                 grid-template-columns: repeat(4, 1fr);
@@ -124,6 +123,22 @@
             object-fit: cover;
         }
 
+        /* Badge/Etiqueta do Tipo de Torneio */
+        .badge-tipo {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         .info-torneio {
             padding: 15px;
             display: flex;
@@ -159,8 +174,16 @@
             border-radius: 2px;
         }
 
-        .btn-download {
+        /* Botões de Ação */
+        .botoes-wrapper {
             margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-download, .btn-inscricao {
+            width: 100%;
             background-color: transparent;
             color: var(--texto-claro);
             border: 2px solid var(--texto-claro);
@@ -172,6 +195,18 @@
             font-size: 0.85rem;
             transition: background 0.2s, color 0.2s;
             cursor: pointer;
+            display: inline-block;
+        }
+
+        /* Botão de inscrição em destaque preto */
+        .btn-inscricao {
+            background-color: var(--texto-claro);
+            color: #ffffff;
+        }
+
+        .btn-inscricao:hover {
+            background-color: #333333;
+            border-color: #333333;
         }
 
         .btn-download:hover {
@@ -293,7 +328,7 @@
             font-weight: 600;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             background-color: #ffffff;
@@ -334,22 +369,11 @@
             font-weight: bold;
         }
 
-        /* MEDIAS QUERIES ADICIONAIS PARA MÓVEIS E TABLETS (RESPONSIVIDADE EXTRA) */
         @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.4rem;
-            }
-            .container {
-                margin: 20px auto;
-            }
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-            .modal-content {
-                width: 95%;
-                padding: 20px;
-            }
+            header h1 { font-size: 1.4rem; }
+            .container { margin: 20px auto; }
+            .form-row { flex-direction: column; gap: 0; }
+            .modal-content { width: 95%; padding: 20px; }
         }
     </style>
 </head>
@@ -365,6 +389,7 @@
         <p style="text-align: center; color: var(--texto-mutado);" id="txtCarregando">A carregar campeonatos...</p>
     </div>
 
+    <!-- Modal de Login -->
     <div class="modal-login" id="modalLogin">
         <div class="modal-content">
             <span class="close-modal" onclick="window.fecharModal()">×</span>
@@ -388,6 +413,7 @@
         <button id="btnGatilhoAdmin" onclick="window.abrirOuSairAdmin()">Acesso Direção</button>
     </footer>
 
+    <!-- Área de Manutenção -->
     <section class="admin-section" id="secaoAdmin">
         <div class="admin-container">
             <h2 id="tituloForm">Nova Manutenção de Torneio</h2>
@@ -397,6 +423,22 @@
                 <div class="form-group">
                     <label>Nome do Torneio / Campeonato</label>
                     <input type="text" id="nomeTorneio" required>
+                </div>
+
+                <div class="form-row">
+                    <!-- Seletor de Variante Solicitado -->
+                    <div class="form-group">
+                        <label>Variante / Tipo</label>
+                        <select id="tipoVolei">
+                            <option value="indoor">Indoor</option>
+                            <option value="praia">Praia</option>
+                            <option value="ar livre">Ar Livre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Local</label>
+                        <input type="text" id="localTorneio" required>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -411,16 +453,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Local</label>
-                    <input type="text" id="localTorneio" required>
-                </div>
-                <div class="form-group">
                     <label>Link Direto do Cartaz/Imagem (Google Drive suportado)</label>
                     <input type="url" id="imagemTorneio" placeholder="https://exemplo.com/imagem.jpg">
                 </div>
-                <div class="form-group">
-                    <label>Link Direto do Informativo (PDF opcional)</label>
-                    <input type="url" id="pdfTorneio" placeholder="https://exemplo.com/documento.pdf">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Link Direto do Informativo (PDF opcional)</label>
+                        <input type="url" id="pdfTorneio" placeholder="https://exemplo.com/documento.pdf">
+                    </div>
+                    <!-- Campo de Link de Inscrição Solicitado -->
+                    <div class="form-group">
+                        <label>Link do Formulário de Inscrição (Opcional)</label>
+                        <input type="url" id="inscricaoTorneio" placeholder="https://forms.gle/... ">
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -433,6 +479,7 @@
         </div>
     </section>
 
+    <!-- SCRIPTS DO FIREBASE E LOGIN DIRETO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -455,12 +502,13 @@
         const USUARIO_CORRETO = "Carlos Martins";
         const SENHA_CORRETA = "academicos2027";
 
-        const BANNER_PADRAO = "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop";
+        // Imagem padrão profissional em alta qualidade focada em Voleibol
+        const BANNER_PADRAO = "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop";
 
         let dadosLocais = [
-            { id: "mock_1", nome: "Torneio de Abertura FC Académicos", dataInicio: "2026-09-15", dataFim: "2026-09-16", local: "Pavilhão Municipal", urlBanner: BANNER_PADRAO, urlPdf: "", comentario: "" },
-            { id: "mock_2", nome: "Campeonato Regional Master", dataInicio: "2026-10-22", dataFim: "2026-10-25", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "", comentario: "" },
-            { id: "mock_3", nome: "Grande Torneio de Encerramento", dataInicio: "2026-12-01", dataFim: "2026-12-01", local: "A definir", urlBanner: BANNER_PADRAO, urlPdf: "", comentario: "Data prevista. Aguardamos a publicação do cartaz oficial." }
+            { id: "mock_1", nome: "Torneio de Abertura FC Académicos", tipo: "indoor", dataInicio: "2026-09-15", dataFim: "2026-09-16", local: "Pavilhão Municipal", urlBanner: BANNER_PADRAO, urlPdf: "", urlInscricao: "", comentario: "" },
+            { id: "mock_2", nome: "Campeonato Regional Master", tipo: "indoor", dataInicio: "2026-10-22", dataFim: "2026-10-25", local: "Barcelos", urlBanner: BANNER_PADRAO, urlPdf: "", urlInscricao: "", comentario: "" },
+            { id: "mock_3", nome: "Open de Volei de Praia Viana", tipo: "praia", dataInicio: "2026-08-01", dataFim: "2026-08-02", local: "Praia Norte", urlBanner: BANNER_PADRAO, urlPdf: "", urlInscricao: "https://forms.gle/exemplo", comentario: "Inscrições abertas até final do mês!" }
         ];
 
         const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -523,6 +571,11 @@
                         : `📅 Dias ${new Date(t.dataInicio).getDate()} a ${dFim}`;
 
                     const htmlComentario = t.comentario ? `<div class="comentario-torneio">ℹ️ ${t.comentario}</div>` : '';
+                    
+                    // Ícone dinâmico baseado no tipo selecionado
+                    let iconeTipo = "🏐";
+                    if(t.tipo === "praia") iconeTipo = "☀️🏖️";
+                    if(t.tipo === "ar livre") iconeTipo = "🌳🏐";
 
                     const card = document.createElement('div');
                     card.className = 'card-torneio';
@@ -533,13 +586,17 @@
                         </div>
                         <div class="poster-wrapper">
                             <img src="${t.urlBanner || BANNER_PADRAO}" alt="Cartaz" onerror="this.src='${BANNER_PADRAO}'">
+                            <span class="badge-tipo">${iconeTipo} ${t.tipo || 'indoor'}</span>
                         </div>
                         <div class="info-torneio">
                             <h3>${t.nome}</h3>
                             <div class="detalhe">${exibicaoData}</div>
                             <div class="detalhe">📍 ${t.local}</div>
                             ${htmlComentario}
-                            ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.3; border-color:#aaa; color:#aaa;">Sem PDF</button>'}
+                            <div class="botoes-wrapper">
+                                ${t.urlInscricao ? `<a href="${t.urlInscricao}" target="_blank" class="btn-inscricao">Fazer Inscrição</a>` : ''}
+                                ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.3; border-color:#aaa; color:#aaa;">Sem PDF</button>'}
+                            </div>
                         </div>
                     `;
                     grid.appendChild(card);
@@ -570,11 +627,13 @@
                     if(item) {
                         document.getElementById('editId').value = item.id;
                         document.getElementById('nomeTorneio').value = item.nome;
+                        document.getElementById('tipoVolei').value = item.tipo || "indoor";
                         document.getElementById('dataInicio').value = item.dataInicio;
                         document.getElementById('dataFim').value = item.dataFim;
                         document.getElementById('localTorneio').value = item.local;
                         document.getElementById('imagemTorneio').value = item.urlBanner === BANNER_PADRAO ? "" : item.urlBanner;
                         document.getElementById('pdfTorneio').value = item.urlPdf;
+                        document.getElementById('inscricaoTorneio').value = item.urlInscricao || "";
                         document.getElementById('comentarioTorneioForm').value = item.comentario || "";
 
                         document.getElementById('tituloForm').innerText = "Editar Torneio Selecionado";
@@ -595,11 +654,13 @@
                     listaFirebase.push({ 
                         id: docSnap.id, 
                         nome: d.nome,
+                        tipo: d.tipo || "indoor",
                         dataInicio: d.dataInicio || d.data,
                         dataFim: d.dataFim || d.data,
                         local: d.local,
                         urlBanner: d.urlBanner,
                         urlPdf: d.urlPdf,
+                        urlInscricao: d.urlInscricao || "",
                         comentario: d.comentario || ""
                     });
                 });
@@ -663,14 +724,16 @@
 
             const idEdicao = document.getElementById('editId').value;
             const nome = document.getElementById('nomeTorneio').value;
+            const tipo = document.getElementById('tipoVolei').value;
             const dataInicio = document.getElementById('dataInicio').value;
             const dataFim = document.getElementById('dataFim').value;
             const local = document.getElementById('localTorneio').value;
             const urlBanner = converterLinkDrive(document.getElementById('imagemTorneio').value.trim());
             const urlPdf = document.getElementById('pdfTorneio').value.trim();
+            const urlInscricao = document.getElementById('inscricaoTorneio').value.trim();
             const comentario = document.getElementById('comentarioTorneioForm').value.trim();
 
-            const dadosObjeto = { nome, dataInicio, dataFim, local, urlBanner, urlPdf, comentario };
+            const dadosObjeto = { nome, tipo, dataInicio, dataFim, local, urlBanner, urlPdf, urlInscricao, comentario };
 
             if (idEdicao) {
                 const idx = dadosLocais.findIndex(item => item.id === idEdicao);
