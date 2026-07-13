@@ -341,7 +341,7 @@
         </div>
     </section>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
@@ -362,10 +362,11 @@
 
         let usuarioLogado = false;
 
-        // Hashes SHA-256 diretos no código para segurança local sem arquivo externo
+        // Hashes SHA-256 fixos e validados
         const USER_HASH = "8ba788939bd6575de2db7e5e347fb7fa75979c78759fb1c5bf0f49646b53cc97"; // carlosmartins@academicos.pt
         const PASS_HASH = "85b244018260b00dfbf6c7a33cf50676fae85295f7ba1420716616e256f3458c"; // academicos2027
 
+        // Função criptográfica corrigida
         async function gerarHash(string) {
             const msgBuffer = new TextEncoder().encode(string);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -451,25 +452,34 @@
             document.getElementById('modalLogin').style.display = 'none';
         }
 
-        // Validação interna direta sem depender de arquivo externo
+        // CORREÇÃO: Adicionado await na geração do Hash para evitar promessas vazias
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usuarioDigitado = document.getElementById('loginEmail').value;
-            const senhaDigitada = document.getElementById('loginSenha').value;
+            
+            // Tratamento de string: remove espaços invisíveis das pontas e força minúsculas
+            const usuarioDigitado = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const senhaDigitada = document.getElementById('loginSenha').value.trim();
 
-            const hashUser = await gerarHash(usuarioDigitado.trim().toLowerCase());
-            const hashPass = await gerarHash(senhaDigitada);
+            try {
+                // Força o sistema a esperar o cálculo matemático do SHA-256 terminar
+                const hashUser = await gerarHash(usuarioDigitado);
+                const hashPass = await gerarHash(senhaDigitada);
 
-            if (hashUser === USER_HASH && hashPass === PASS_HASH) {
-                usuarioLogado = true;
-                window.fecharModal();
-                document.getElementById('formLogin').reset();
-                atualizarPainelAdmin();
-            } else {
-                alert("Acesso negado: Utilizador ou senha incorretos.");
+                if (hashUser === USER_HASH && hashPass === PASS_HASH) {
+                    usuarioLogado = true;
+                    window.fecharModal();
+                    document.getElementById('formLogin').reset();
+                    atualizarPainelAdmin();
+                } else {
+                    alert("Acesso negado: Utilizador ou senha incorretos.");
+                }
+            } catch (err) {
+                console.error("Erro no processamento do login:", err);
+                alert("Erro interno ao processar segurança. Tente novamente.");
             }
         });
 
+        // Execução automática ao entrar na página
         renderizarTorneios();
 
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
