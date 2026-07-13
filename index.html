@@ -62,6 +62,20 @@
             flex: 1;
         }
 
+        /* Títulos dos Meses */
+        .secao-mes {
+            margin-bottom: 50px;
+        }
+
+        .titulo-mes {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--texto-claro);
+            padding-bottom: 5px;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
         .grid-torneios {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -145,10 +159,16 @@
             color: #ffffff;
         }
 
-        .btn-delete {
+        .controles-admin {
             position: absolute;
             top: 10px;
             right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .btn-delete {
             background-color: rgba(218, 0, 0, 0.9);
             color: white;
             border: none;
@@ -158,7 +178,18 @@
             font-size: 0.8rem;
             font-weight: bold;
             display: none;
-            z-index: 10;
+        }
+
+        .btn-edit {
+            background-color: rgba(0, 100, 218, 0.9);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
         }
 
         /* Modal de Login */
@@ -225,6 +256,15 @@
             margin-bottom: 15px;
         }
 
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
@@ -283,15 +323,13 @@
         <p>Época 2026/2027</p>
     </header>
 
-    <div class="container">
-        <div class="grid-torneios" id="gridTorneios">
-            <p style="text-align: center; grid-column: 1/-1; color: var(--texto-mutado);">A carregar campeonatos...</p>
-        </div>
+    <div class="container" id="containerMeses">
+        <p style="text-align: center; color: var(--texto-mutado);" id="txtCarregando">A carregar campeonatos...</p>
     </div>
 
     <div class="modal-login" id="modalLogin">
         <div class="modal-content">
-            <span class="close-modal" onclick="window.fecharModal()">&times;</span>
+            <span class="close-modal" onclick="window.fecharModal()">×</span>
             <h3>Acesso Direção</h3>
             <form id="formLogin">
                 <div class="form-group">
@@ -308,42 +346,52 @@
     </div>
 
     <footer>
-        &copy; 2026 FC Académicos. Todos os direitos reservados.
+        © 2026 FC Académicos. Todos os direitos reservados.
         <button id="btnGatilhoAdmin" onclick="window.abrirOuSairAdmin()">Acesso Direção</button>
     </footer>
 
     <section class="admin-section" id="secaoAdmin">
         <div class="admin-container">
-            <h2>Nova Manutenção de Torneio</h2>
+            <h2 id="tituloForm">Nova Manutenção de Torneio</h2>
             <form id="formTorneio">
+                <input type="hidden" id="editId" value="">
+
                 <div class="form-group">
                     <label>Nome do Torneio / Campeonato</label>
                     <input type="text" id="nomeTorneio" required>
                 </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="dataTorneio" required>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data de Início</label>
+                        <input type="date" id="dataInicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Fim</label>
+                        <input type="date" id="dataFim" required>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label>Local</label>
                     <input type="text" id="localTorneio" required>
                 </div>
                 <div class="form-group">
-                    <label>Link Direto do Cartaz/Imagem</label>
+                    <label>Link Direto do Cartaz/Imagem (Google Drive suportado)</label>
                     <input type="url" id="imagemTorneio" placeholder="https://exemplo.com/imagem.jpg" required>
                 </div>
                 <div class="form-group">
                     <label>Link Direto do Informativo (PDF opcional)</label>
                     <input type="url" id="pdfTorneio" placeholder="https://exemplo.com/documento.pdf">
                 </div>
-                <button type="submit" class="btn-submit">Publicar no Calendário</button>
+                <button type="submit" class="btn-submit" id="btnSalvarForm">Publicar no Calendário</button>
             </form>
         </div>
     </section>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDwtgI2CPCRCqEJiongyrU7AA3lVLENMUw",
@@ -363,35 +411,101 @@
         const USUARIO_CORRETO = "Carlos Martins";
         const SENHA_CORRETA = "academicos2027";
 
+        // Dados de teste locais com estrutura atualizada de duas datas
         let dadosLocais = [
-            { id: "mock_1", nome: "Torneio de Abertura FC Académicos", data: "2026-09-15", local: "Pavilhão Municipal", urlBanner: "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
-            { id: "mock_2", nome: "Campeonato Regional Master", data: "2026-10-22", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
-            { id: "mock_3", nome: "Taça de Natal de Voleibol", data: "2026-12-18", local: "Viana do Castelo", urlBanner: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=600&auto=format&fit=crop", urlPdf: "" }
+            { id: "mock_1", nome: "Torneio de Abertura FC Académicos", dataInicio: "2026-09-15", dataFim: "2026-09-16", local: "Pavilhão Municipal", urlBanner: "https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
+            { id: "mock_2", nome: "Campeonato Regional Master", dataInicio: "2026-10-22", dataFim: "2026-10-25", local: "Barcelos", urlBanner: "https://images.unsplash.com/photo-1592656094267-764a45068526?q=80&w=600&auto=format&fit=crop", urlPdf: "" },
+            { id: "mock_3", nome: "Taça de Natal de Voleibol", dataInicio: "2026-12-18", dataFim: "2026-12-19", local: "Viana do Castelo", urlBanner: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=600&auto=format&fit=crop", urlPdf: "" }
         ];
 
-        function exibirLista(lista) {
-            const grid = document.getElementById('gridTorneios');
-            grid.innerHTML = '';
-            
-            lista.forEach((t) => {
-                const dataFormatada = new Date(t.data).toLocaleDateString('pt-PT');
-                const card = document.createElement('div');
-                card.className = 'card-torneio';
-                card.innerHTML = `
-                    <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${t.id}">Apagar</button>
-                    <div class="poster-wrapper">
-                        <img src="${t.urlBanner}" alt="Cartaz do Torneio" onerror="this.src='https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop'">
-                    </div>
-                    <div class="info-torneio">
-                        <h3>${t.nome}</h3>
-                        <div class="detalhe">📅 ${dataFormatada}</div>
-                        <div class="detalhe">📍 ${t.local}</div>
-                        ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.3; border-color:#aaa; color:#aaa;">Sem PDF</button>'}
-                    </div>
-                `;
-                grid.appendChild(card);
+        const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+        // Função mágica para converter links do Google Drive para links diretos
+        function converterLinkDrive(url) {
+            if (url.includes("drive.google.com")) {
+                let parts = url.split(/\/file\/d\/(.+?)\//);
+                if (parts && parts[1]) {
+                    return `https://lh3.googleusercontent.com/u/0/d/${parts[1]}`;
+                }
+                let idParam = url.split("id=");
+                if (idParam && idParam[1]) {
+                    return `https://lh3.googleusercontent.com/u/0/d/${idParam[1].split("&")[0]}`;
+                }
+            }
+            return url;
+        }
+
+        function exibirListaPorMeses(lista) {
+            const container = document.getElementById('containerMeses');
+            container.innerHTML = '';
+
+            if(lista.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--texto-mutado);">Nenhum torneio agendado para esta época.</p>';
+                return;
+            }
+
+            // Agrupar itens por Ano-Mês
+            let grupos = {};
+            lista.forEach(t => {
+                let dataObj = new Date(t.dataInicio);
+                let ano = dataObj.getFullYear();
+                let mesIdx = dataObj.getMonth();
+                let chave = `${ano}-${String(mesIdx).padStart(2, '0')}`;
+
+                if(!grupos[chave]) {
+                    grupos[chave] = { nomeMes: `${nomesMeses[mesIdx]} ${ano}`, itens: [] };
+                }
+                grupos[chave].itens.push(t);
             });
 
+            // Ordenar as chaves dos meses cronologicamente
+            let chavesOrdenadas = Object.keys(grupos).sort();
+
+            chavesOrdenadas.forEach(chave => {
+                const grupo = grupos[chave];
+
+                // Criar a secção visual do mês
+                const secao = document.createElement('div');
+                secao.className = 'secao-mes';
+                secao.innerHTML = `<h2 class="titulo-mes">${grupo.nomeMes}</h2>`;
+
+                const grid = document.createElement('div');
+                grid.className = 'grid-torneios';
+
+                grupo.itens.forEach(t => {
+                    const dInicio = new Date(t.dataInicio).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+                    const dFim = new Date(t.dataFim).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    
+                    // Exibição amigável do intervalo de dias
+                    const exibicaoData = dInicio === new Date(t.dataFim).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }) 
+                        ? `📅 ${dFim}` 
+                        : `📅 Dias ${new Date(t.dataInicio).getDate()} a ${dFim}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'card-torneio';
+                    card.innerHTML = `
+                        <div class="controles-admin">
+                            <button class="btn-edit" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${t.id}">Editar</button>
+                            <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${t.id}">Apagar</button>
+                        </div>
+                        <div class="poster-wrapper">
+                            <img src="${t.urlBanner}" alt="Cartaz" onerror="this.src='https://images.unsplash.com/photo-1547483238-f400e65ccd56?q=80&w=600&auto=format&fit=crop'">
+                        </div>
+                        <div class="info-torneio">
+                            <h3>${t.nome}</h3>
+                            <div class="detalhe">${exibicaoData}</div>
+                            <div class="detalhe">📍 ${t.local}</div>
+                            ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.3; border-color:#aaa; color:#aaa;">Sem PDF</button>'}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                secao.appendChild(grid);
+                container.appendChild(secao);
+            });
+
+            // Lógica Administrativa: Apagar
             document.querySelectorAll('.btn-delete').forEach(btn => {
                 btn.onclick = async (e) => {
                     if(confirm("Tem certeza que deseja apagar este torneio?")) {
@@ -399,10 +513,34 @@
                         dadosLocais = dadosLocais.filter(item => item.id !== idDoc);
                         try {
                             await deleteDoc(doc(db, "torneios", idDoc));
-                        } catch(err) {
-                            console.log("Removido localmente no ecrã.");
-                        }
-                        exibirLista(dadosLocais);
+                        } catch(err) { console.log("Removido no ecrã."); }
+                        exibirListaPorMeses(dadosLocais);
+                    }
+                };
+            });
+
+            // Lógica Administrativa: Módulo de Edição solicitado
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.onclick = (e) => {
+                    const idDoc = e.target.getAttribute('data-id');
+                    const item = dadosLocais.find(t => t.id === idDoc);
+                    
+                    if(item) {
+                        // Preenche o formulário com os dados antigos
+                        document.getElementById('editId').value = item.id;
+                        document.getElementById('nomeTorneio').value = item.nome;
+                        document.getElementById('dataInicio').value = item.dataInicio;
+                        document.getElementById('dataFim').value = item.dataFim;
+                        document.getElementById('localTorneio').value = item.local;
+                        document.getElementById('imagemTorneio').value = item.urlBanner;
+                        document.getElementById('pdfTorneio').value = item.urlPdf;
+
+                        // Muda os textos do formulário
+                        document.getElementById('tituloForm').innerText = "Editar Torneio Selecionado";
+                        document.getElementById('btnSalvarForm').innerText = "Atualizar Torneio";
+                        
+                        // Rola a página até ao formulário
+                        document.getElementById('secaoAdmin').scrollIntoView({ behavior: 'smooth' });
                     }
                 };
             });
@@ -410,20 +548,27 @@
 
         async function renderizarTorneios() {
             try {
-                const q = query(collection(db, "torneios"));
-                const querySnapshot = await getDocs(q);
+                const querySnapshot = await getDocs(collection(db, "torneios"));
                 let listaFirebase = [];
                 querySnapshot.forEach((docSnap) => {
-                    listaFirebase.push({ id: docSnap.id, ...docSnap.data() });
+                    let d = docSnap.data();
+                    // Garante compatibilidade caso existam campos antigos no Firestore
+                    listaFirebase.push({ 
+                        id: docSnap.id, 
+                        nome: d.nome,
+                        dataInicio: d.dataInicio || d.data,
+                        dataFim: d.dataFim || d.data,
+                        local: d.local,
+                        urlBanner: d.urlBanner,
+                        urlPdf: d.urlPdf
+                    });
                 });
-                if(listaFirebase.length > 0) {
-                    dadosLocais = listaFirebase;
-                }
-                dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
-                exibirLista(dadosLocais);
+                if(listaFirebase.length > 0) { dadosLocais = listaFirebase; }
+                dadosLocais.sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio));
+                exibirListaPorMeses(dadosLocais);
             } catch (error) {
-                dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
-                exibirLista(dadosLocais);
+                dadosLocais.sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio));
+                exibirListaPorMeses(dadosLocais);
             }
         }
 
@@ -437,7 +582,7 @@
                 secaoAdmin.style.display = 'none';
                 btnGatilho.innerText = "Acesso Direção";
             }
-            exibirLista(dadosLocais);
+            exibirListaPorMeses(dadosLocais);
         }
 
         window.abrirOuSairAdmin = function() {
@@ -470,31 +615,55 @@
 
         renderizarTorneios();
 
+        // Envio do formulário (Suporta Criar e Editar)
         document.getElementById('formTorneio').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = e.target.querySelector('.btn-submit');
-            btnSubmit.innerText = "A publicar... Aguarde.";
+            btnSubmit.innerText = "A guardar... Aguarde.";
             btnSubmit.disabled = true;
 
+            const idEdicao = document.getElementById('editId').value;
             const nome = document.getElementById('nomeTorneio').value;
-            const data = document.getElementById('dataTorneio').value;
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
             const local = document.getElementById('localTorneio').value;
-            const urlBanner = document.getElementById('imagemTorneio').value.trim();
+            
+            // Converte automaticamente o link caso o diretor cole um do Drive
+            const urlBanner = converterLinkDrive(document.getElementById('imagemTorneio').value.trim());
             const urlPdf = document.getElementById('pdfTorneio').value.trim();
 
-            try {
-                await addDoc(collection(db, "torneios"), { nome, data, local, urlBanner, urlPdf });
-            } catch (error) {
-                console.log("Guardando localmente devido a restrições no banco de dados.");
+            const dadosObjeto = { nome, dataInicio, dataFim, local, urlBanner, urlPdf };
+
+            if (idEdicao) {
+                // MODO EDIÇÃO
+                const idx = dadosLocais.findIndex(item => item.id === idEdicao);
+                if(idx !== -1) { dadosLocais[idx] = { id: idEdicao, ...dadosObjeto }; }
+                
+                try {
+                    await updateDoc(doc(db, "torneios", idEdicao), dadosObjeto);
+                } catch(err) { console.log("Atualizado localmente."); }
+                
+                alert("Torneio atualizado com sucesso!");
+            } else {
+                // MODO NOVO REGISTO
+                let novoId = "local_" + Date.now();
+                try {
+                    const docRef = await addDoc(collection(db, "torneios"), dadosObjeto);
+                    novoId = docRef.id;
+                } catch (error) { console.log("Criado localmente."); }
+
+                dadosLocais.push({ id: novoId, ...dadosObjeto });
+                alert("Torneio adicionado com sucesso!");
             }
 
-            const novoItem = { id: "local_" + Date.now(), nome, data, local, urlBanner, urlPdf };
-            dadosLocais.push(novoItem);
-            dadosLocais.sort((a, b) => new Date(a.data) - new Date(b.data));
-            
-            alert("Torneio adicionado com sucesso!");
+            // Reseta o formulário e volta ao estado padrão
             document.getElementById('formTorneio').reset();
-            exibirLista(dadosLocais);
+            document.getElementById('editId').value = "";
+            document.getElementById('tituloForm').innerText = "Nova Manutenção de Torneio";
+            document.getElementById('btnSalvarForm').innerText = "Publicar no Calendário";
+
+            dadosLocais.sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio));
+            exibirListaPorMeses(dadosLocais);
             
             btnSubmit.innerText = "Publicar no Calendário";
             btnSubmit.disabled = false;
