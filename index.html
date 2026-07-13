@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Torneios - FC Académicos</title>
+    <style>
+        :root {
+            --bg-principal: #121212;
+            --bg-card: #1e1e1e;
+            --texto-claro: #ffffff;
+            --texto-mutado: #aaaaaa;
+            --accent: #ffffff;
+            --borda: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--texto-claro);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background-color: #0a0a0a;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--borda);
+        }
+
+        header img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: var(--texto-mutado);
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        /* Grid estilo Cinema */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        .grid-torneios {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .card-torneio {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--borda);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-torneio:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .poster-wrapper {
+            width: 100%;
+            padding-top: 135%; /* Proporção de cartaz de cinema (3:4 aprox) */
+            position: relative;
+            background-color: #0a0a0a;
+        }
+
+        .poster-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info-torneio {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .info-torneio h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .detalhe {
+            font-size: 0.9rem;
+            color: var(--texto-mutado);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-download {
+            margin-top: auto;
+            background-color: transparent;
+            color: var(--texto-claro);
+            border: 1px solid var(--texto-claro);
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-download:hover {
+            background-color: var(--texto-claro);
+            color: var(--bg-principal);
+        }
+
+        .btn-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: none; /* Só aparece quando logado */
+        }
+
+        /* Seção Administrativa Oculta */
+        .admin-section {
+            background-color: #0a0a0a;
+            border-top: 2px solid var(--borda);
+            padding: 40px 20px;
+            display: none; /* Controlado via JS */
+        }
+
+        .admin-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .admin-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: var(--texto-mutado);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            color: white;
+            border-radius: 4px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: white;
+            color: black;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #0a0a0a;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--texto-mutado);
+            border-top: 1px solid var(--borda);
+        }
+
+        footer button {
+            background: none;
+            border: none;
+            color: var(--texto-mutado);
+            cursor: pointer;
+            text-decoration: underline;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Topo -->
+    <header>
+        <img src="logo.png" alt="FC Académicos Logo">
+        <h1>Calendário de Torneios</h1>
+        <p>Época 2026/2027</p>
+    </header>
+
+    <!-- Grelha de Cartazes Pública -->
+    <div class="container">
+        <div class="grid-torneios" id="gridTorneios">
+            <!-- Os cartazes vão entrar aqui dinamicamente via JS -->
+            <p style="text-align: center; grid-column: 1/-1; color: var(--texto-mutado);">A carregar campeonatos...</p>
+        </div>
+    </div>
+
+    <!-- Rodapé com gatilho de login -->
+    <footer>
+        &copy; 2026 FC Académicos. Todos os direitos reservados.
+        <button id="btnGatilhoAdmin" onclick="gerirLoginAdmin()">Acesso Direção</button>
+    </footer>
+
+    <!-- Área de Manutenção (Aparece após o Login) -->
+    <section class="admin-section" id="secaoAdmin">
+        <div class="admin-container">
+            <h2>Nova Manutenção de Torneio</h2>
+            <form id="formTorneio">
+                <div class="form-group">
+                    <label>Nome do Torneio / Campeonato</label>
+                    <input type="text" id="nomeTorneio" required>
+                </div>
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="dataTorneio" required>
+                </div>
+                <div class="form-group">
+                    <label>Local</label>
+                    <input type="text" id="localTorneio" required>
+                </div>
+                <div class="form-group">
+                    <label>Cartaz/Banner (Imagem)</label>
+                    <input type="file" id="imagemTorneio" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>Informativo/Regulamento (PDF opcional)</label>
+                    <input type="file" id="pdfTorneio" accept=".pdf">
+                </div>
+                <button type="submit" class="btn-submit">Publicar no Calendário</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- SCRIPTS DO FIREBASE (V9 Modular via CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        // As tuas credenciais do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDwtgI2CPCRCqEJiongyrU7AA3lVLENMUw",
+            authDomain: "calendariotorneios-4dd2c.firebaseapp.com",
+            projectId: "calendariotorneios-4dd2c",
+            storageBucket: "calendariotorneios-4dd2c.firebasestorage.app",
+            messagingSenderId: "440861690468",
+            appId: "1:440861690468:web:f094625735e66e93c62d71",
+            measurementId: "G-GPLW8354GC"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const auth = getAuth(app);
+
+        let usuarioLogado = false;
+
+        // --- CARREGAR TORNEIOS NA TELA ---
+        async function renderizarTorneios() {
+            const grid = document.getElementById('gridTorneios');
+            grid.innerHTML = '';
+
+            try {
+                const q = query(collection(db, "torneios"), orderBy("data", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                if(querySnapshot.empty) {
+                    grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: var(--texto-mutado);">Nenhum torneio agendado para esta época.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const t = docSnap.data();
+                    const id = docSnap.id;
+
+                    // Formatar data para padrão PT
+                    const dataFormatada = new Date(t.data).toLocaleDateString('pt-PT');
+
+                    const card = document.createElement('div');
+                    card.className = 'card-torneio';
+                    card.innerHTML = `
+                        <button class="btn-delete" style="display: ${usuarioLogado ? 'block' : 'none'}" data-id="${id}">Apagar</button>
+                        <div class="poster-wrapper">
+                            <img src="${t.urlBanner}" alt="Cartaz do Torneio">
+                        </div>
+                        <div class="info-torneio">
+                            <h3>${t.nome}</h3>
+                            <div class="detalhe">📅 ${dataFormatada}</div>
+                            <div class="detalhe">📍 ${t.local}</div>
+                            ${t.urlPdf ? `<a href="${t.urlPdf}" target="_blank" class="btn-download">Informativo (PDF)</a>` : '<button class="btn-download" disabled style="opacity:0.5;">Sem PDF</button>'}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                // Adicionar evento aos botões de apagar
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if(confirm("Tem certeza que deseja apagar este torneio?")) {
+                            const idDoc = e.target.getAttribute('data-id');
+                            await deleteDoc(doc(db, "torneios", idDoc));
+                            renderizarTorneios();
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error("Erro ao ler dados: ", error);
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: red;">Erro ao carregar o calendário.</p>';
+            }
+        }
+
+        // --- SISTEMA DE LOGIN DO DIRETOR ---
+        window.gerirLoginAdmin = function() {
+            if (auth.currentUser) {
+                signOut(auth);
+            } else {
+                const email = prompt("E-mail do Diretor:");
+                const senha = prompt("Senha de Acesso:");
+                if (email && senha) {
+                    signInWithEmailAndPassword(auth, email, senha)
+                        .catch(err => alert("Acesso negado: Dados incorretos."));
+                }
+            }
+        }
+
+        // Monitorizar estado do Login
+        onAuthStateChanged(auth, (user) => {
+            const secaoAdmin = document.getElementById('secaoAdmin');
+            const btnGatilho = document.getElementById('btnGatilhoAdmin');
+            
+            if (user) {
+                usuarioLogado = true;
+                secaoAdmin.style.display = 'block';
+                btnGatilho.innerText = "Sair (Logout)";
+            } else {
+                usuarioLogado = false;
+                secaoAdmin.style.display = 'none';
+                btnGatilho.innerText = "Acesso Direção";
+            }
+            renderizarTorneios();
+        });
+
+        // --- SUBMETER FORMULÁRIO (UPLOAD & GRAVAÇÃO) ---
+        document.getElementById('formTorneio').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = e.target.querySelector('.btn-submit');
+            btnSubmit.innerText = "A publicar... Aguarde.";
+            btnSubmit.disabled = true;
+
+            const nome = document.getElementById('nomeTorneio').value;
+            const data = document.getElementById('dataTorneio').value;
+            const local = document.getElementById('localTorneio').value;
+            const fileImagem = document.getElementById('imagemTorneio').files[0];
+            const filePdf = document.getElementById('pdfTorneio').files[0];
+
+            try {
+                // 1. Upload do Banner
+                const storageRefImg = ref(storage, `banners/${Date.now()}_${fileImagem.name}`);
+                const snapshotImg = await uploadBytes(storageRefImg, fileImagem);
+                const urlBanner = await getDownloadURL(snapshotImg.ref);
+
+                // 2. Upload do PDF (Se houver)
+                let urlPdf = "";
+                if (filePdf) {
+                    const storageRefPdf = ref(storage, `documentos/${Date.now()}_${filePdf.name}`);
+                    const snapshotPdf = await uploadBytes(storageRefPdf, filePdf);
+                    urlPdf = await getDownloadURL(snapshotPdf.ref);
+                }
+
+                // 3. Salvar no Firestore
+                await addDoc(collection(db, "torneios"), {
+                    nome,
+                    data,
+                    local,
+                    urlBanner,
+                    urlPdf
+                });
+
+                alert("Torneio publicado com sucesso!");
+                document.getElementById('formTorneio').reset();
+                renderizarTorneios();
+
+            } catch (error) {
+                console.error("Erro ao publicar: ", error);
+                alert("Erro ao salvar o torneio. Verifique as permissões de armazenamento.");
+            } finally {
+                btnSubmit.innerText = "Publicar no Calendário";
+                btnSubmit.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
